@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tangkap Bintang | Byhas Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ color-scheme:light; --bg:#f3f6fa; --card:#fff; --ink:#16243b; --on-ink:#fff; --muted:#56657d; --blue:#2f5fd0; --sun:#f2b630; --rock:#7b8799; --line:#dde4ee; --sky:#e6eefb; }
+  @media(prefers-color-scheme:dark){ :root{ color-scheme:dark; --bg:#0f1724; --card:#172236; --ink:#e9eef7; --on-ink:#0f1724; --muted:#a2afc3; --blue:#8fb0f7; --rock:#8d99ad; --line:#26344b; --sky:#1b2a44; } }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{ background:var(--bg); color:var(--ink); font-family:'Plus Jakarta Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:18px 16px 28px; -webkit-font-smoothing:antialiased; }
+  h1{ font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:26px; margin-bottom:12px; }
+  .hud{ width:min(100%,400px); display:flex; justify-content:space-between; font-weight:600; font-size:15px; margin-bottom:10px; }
+  .hud span b{ font-family:'Bricolage Grotesque',sans-serif; font-size:20px; margin-left:4px; }
+  .stage{ position:relative; width:min(100%,400px); aspect-ratio:2/3; max-height:calc(100vh - 170px); border-radius:18px; overflow:hidden; border:1px solid var(--line); background:var(--sky); touch-action:none; }
+  canvas{ width:100%; height:100%; display:block; }
+  .overlay{ position:absolute; inset:0; background:color-mix(in srgb, var(--bg) 88%, transparent); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:28px; gap:12px; }
+  .overlay.hide{ display:none; }
+  .overlay h2{ font-family:'Bricolage Grotesque',sans-serif; font-size:30px; }
+  .overlay p{ color:var(--muted); font-size:15px; max-width:19em; }
+  button{ font:inherit; font-weight:700; font-size:16px; background:var(--ink); color:var(--on-ink); border:none; border-radius:10px; padding:12px 28px; cursor:pointer; }
+  button:hover{ background:var(--blue); color:#fff; }
+  :focus-visible{ outline:3px solid var(--sun); outline-offset:3px; }
+  .tip{ margin-top:14px; font-size:13px; color:var(--muted); text-align:center; max-width:400px; }
+</style>
+</head>
+<body>
+
+<h1>Tangkap Bintang</h1>
+<div class="hud">
+  <span>Skor<b id="skor">0</b></span>
+  <span>Nyawa<b id="nyawa">3</b></span>
+  <span>Rekor<b id="rekor">0</b></span>
+</div>
+
+<div class="stage">
+  <canvas id="c" width="400" height="600"></canvas>
+  <div class="overlay" id="ov">
+    <h2 id="ovJudul">Tangkap Bintang</h2>
+    <p id="ovTeks">Gerakkan keranjang untuk menangkap bintang. Hindari batu agar nyawamu tidak berkurang.</p>
+    <button id="mulai" type="button">Mulai main</button>
+  </div>
+</div>
+<p class="tip">Kontrol: tombol panah kiri dan kanan (atau A dan D), atau geser jari dan mouse. Tekan Spasi untuk jeda.</p>
+
+<script>
+  var cv=document.getElementById('c'), ctx=cv.getContext('2d'), W=400, H=600;
+  var elSkor=document.getElementById('skor'), elNyawa=document.getElementById('nyawa'), elRekor=document.getElementById('rekor');
+  var ov=document.getElementById('ov'), ovJudul=document.getElementById('ovJudul'), ovTeks=document.getElementById('ovTeks'), btn=document.getElementById('mulai');
+  var rekor=0; try{ rekor=parseInt(localStorage.getItem('rekorBintang'),10)||0; }catch(e){}
+  elRekor.textContent=rekor;
+
+  var C={};
+  function warna(){ var s=getComputedStyle(document.documentElement);
+    ['--blue','--sun','--rock','--ink'].forEach(function(k){ C[k]=s.getPropertyValue(k).trim(); }); }
+  warna(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change',warna);
+
+  var jalan=false, jeda=false, skor=0, nyawa=3, benda=[], waktuMuncul=0, kecepatan=150, terakhir=0, getar=0;
+  var p={ x:W/2, w:84, h:18, y:H-48 }, tujuan=W/2, tombol={ kiri:false, kanan:false };
+
+  function mulai(){
+    skor=0; nyawa=3; benda=[]; waktuMuncul=0; kecepatan=150; p.x=W/2; tujuan=W/2; jalan=true; jeda=false;
+    ov.classList.add('hide'); tampil(); terakhir=performance.now(); requestAnimationFrame(loop);
+  }
+  function tampil(){ elSkor.textContent=skor; elNyawa.textContent=nyawa; }
+  function selesai(){
+    jalan=false;
+    if(skor>rekor){ rekor=skor; elRekor.textContent=rekor; try{ localStorage.setItem('rekorBintang',rekor); }catch(e){} }
+    ovJudul.textContent='Permainan selesai';
+    ovTeks.textContent='Skormu '+skor+(skor>=rekor&&skor>0?' dan itu rekor baru!':'. Rekor tertinggi: '+rekor+'.');
+    btn.textContent='Main lagi'; ov.classList.remove('hide');
+  }
+
+  function muncul(){
+    var bintang=Math.random()>0.32, r=bintang?15:17;
+    benda.push({ x:r+Math.random()*(W-2*r), y:-r, r:r, bintang:bintang, putar:Math.random()*6, v:kecepatan*(0.85+Math.random()*0.4) });
+  }
+
+  function update(dt){
+    var gerak=(tombol.kanan?1:0)-(tombol.kiri?1:0);
+    if(gerak) tujuan=Math.max(p.w/2,Math.min(W-p.w/2,tujuan+gerak*430*dt));
+    p.x+=(tujuan-p.x)*Math.min(1,dt*16);
+    waktuMuncul-=dt;
+    if(waktuMuncul<=0){ muncul(); waktuMuncul=Math.max(0.35,0.95-skor*0.012); }
+    kecepatan=150+skor*3.2;
+    for(var i=benda.length-1;i>=0;i--){
+      var b=benda[i]; b.y+=b.v*dt; b.putar+=dt*2;
+      var kena=b.y+b.r>p.y && b.y-b.r<p.y+p.h && Math.abs(b.x-p.x)<p.w/2+b.r*0.6;
+      if(kena){
+        if(b.bintang){ skor++; } else { nyawa--; getar=0.25; }
+        benda.splice(i,1); tampil();
+        if(nyawa<=0){ selesai(); return; }
+      } else if(b.y-b.r>H){
+        benda.splice(i,1);
+      }
+    }
+    if(getar>0) getar-=dt;
+  }
+
+  function bintangPath(x,y,r,rot){
+    ctx.beginPath();
+    for(var i=0;i<10;i++){ var a=rot+i*Math.PI/5-Math.PI/2, rr=i%2?r*0.45:r; ctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr); }
+    ctx.closePath();
+  }
+  function gambar(){
+    ctx.clearRect(0,0,W,H);
+    ctx.save();
+    if(getar>0) ctx.translate((Math.random()-0.5)*8,0);
+    benda.forEach(function(b){
+      if(b.bintang){ ctx.fillStyle=C['--sun']; bintangPath(b.x,b.y,b.r,Math.sin(b.putar)*0.3); ctx.fill(); }
+      else{
+        ctx.fillStyle=C['--rock']; ctx.beginPath();
+        for(var i=0;i<7;i++){ var a=b.putar+i*Math.PI*2/7, rr=b.r*(i%2?0.82:1); ctx.lineTo(b.x+Math.cos(a)*rr,b.y+Math.sin(a)*rr); }
+        ctx.closePath(); ctx.fill();
+      }
+    });
+    ctx.fillStyle=C['--blue'];
+    ctx.beginPath(); ctx.roundRect(p.x-p.w/2,p.y,p.w,p.h,[4,4,12,12]); ctx.fill();
+    ctx.fillRect(p.x-p.w/2-3,p.y-5,p.w+6,6);
+    ctx.restore();
+  }
+
+  function loop(t){
+    if(!jalan) return;
+    var dt=Math.min(0.04,(t-terakhir)/1000); terakhir=t;
+    if(!jeda){ update(dt); }
+    if(jalan){ gambar(); requestAnimationFrame(loop); }
+  }
+
+  function atur(j){
+    if(!jalan) return;
+    jeda=j;
+    if(j){ ovJudul.textContent='Dijeda'; ovTeks.textContent='Tekan Spasi atau tombol di bawah untuk melanjutkan.'; btn.textContent='Lanjutkan'; ov.classList.remove('hide'); }
+    else{ ov.classList.add('hide'); terakhir=performance.now(); }
+  }
+  btn.addEventListener('click',function(){ if(jalan&&jeda) atur(false); else mulai(); });
+
+  addEventListener('keydown',function(e){
+    var k=e.key.toLowerCase();
+    if(k==='arrowleft'||k==='a') tombol.kiri=true;
+    if(k==='arrowright'||k==='d') tombol.kanan=true;
+    if(e.code==='Space'&&e.target!==btn){ e.preventDefault(); atur(!jeda); }
+  });
+  addEventListener('keyup',function(e){
+    var k=e.key.toLowerCase();
+    if(k==='arrowleft'||k==='a') tombol.kiri=false;
+    if(k==='arrowright'||k==='d') tombol.kanan=false;
+  });
+  function geser(e){
+    var r=cv.getBoundingClientRect(); tujuan=Math.max(p.w/2,Math.min(W-p.w/2,(e.clientX-r.left)/r.width*W));
+  }
+  cv.addEventListener('pointermove',geser);
+  cv.addEventListener('pointerdown',geser);
+  document.addEventListener('visibilitychange',function(){ if(document.hidden&&jalan&&!jeda) atur(true); });
+
+  gambar();
+</script>
+</body>
+</html>
