@@ -2,159 +2,106 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tangkap Bintang | Byhas Studio</title>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tangkap Apel - Unduh Game Scratch</title>
 <style>
-  :root{ color-scheme:light; --bg:#f3f6fa; --card:#fff; --ink:#16243b; --on-ink:#fff; --muted:#56657d; --blue:#2f5fd0; --sun:#f2b630; --rock:#7b8799; --line:#dde4ee; --sky:#e6eefb; }
-  @media(prefers-color-scheme:dark){ :root{ color-scheme:dark; --bg:#0f1724; --card:#172236; --ink:#e9eef7; --on-ink:#0f1724; --muted:#a2afc3; --blue:#8fb0f7; --rock:#8d99ad; --line:#26344b; --sky:#1b2a44; } }
-  *{ margin:0; padding:0; box-sizing:border-box; }
-  body{ background:var(--bg); color:var(--ink); font-family:'Plus Jakarta Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:18px 16px 28px; -webkit-font-smoothing:antialiased; }
-  h1{ font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:26px; margin-bottom:12px; }
-  .hud{ width:min(100%,400px); display:flex; justify-content:space-between; font-weight:600; font-size:15px; margin-bottom:10px; }
-  .hud span b{ font-family:'Bricolage Grotesque',sans-serif; font-size:20px; margin-left:4px; }
-  .stage{ position:relative; width:min(100%,400px); aspect-ratio:2/3; max-height:calc(100vh - 170px); border-radius:18px; overflow:hidden; border:1px solid var(--line); background:var(--sky); touch-action:none; }
-  canvas{ width:100%; height:100%; display:block; }
-  .overlay{ position:absolute; inset:0; background:color-mix(in srgb, var(--bg) 88%, transparent); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:28px; gap:12px; }
-  .overlay.hide{ display:none; }
-  .overlay h2{ font-family:'Bricolage Grotesque',sans-serif; font-size:30px; }
-  .overlay p{ color:var(--muted); font-size:15px; max-width:19em; }
-  button{ font:inherit; font-weight:700; font-size:16px; background:var(--ink); color:var(--on-ink); border:none; border-radius:10px; padding:12px 28px; cursor:pointer; }
-  button:hover{ background:var(--blue); color:#fff; }
-  :focus-visible{ outline:3px solid var(--sun); outline-offset:3px; }
-  .tip{ margin-top:14px; font-size:13px; color:var(--muted); text-align:center; max-width:400px; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(#8fd3ff,#e6f7ff);min-height:100vh;color:#1f2937}
+  .wrap{max-width:560px;margin:0 auto;padding:24px 16px 48px}
+  h1{margin:8px 0 4px;font-size:1.7rem}
+  .sub{margin:0 0 20px;color:#374151}
+  .card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,.1);margin-bottom:16px}
+  .file{display:flex;align-items:center;gap:14px}
+  .icon{width:56px;height:56px;border-radius:12px;background:#ffab19;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex:none}
+  .fname{font-weight:700;word-break:break-all}
+  .meta{color:#6b7280;font-size:.9rem}
+  button.dl{width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:#e02424;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer}
+  button.dl:active{transform:scale(.98)}
+  a.open{display:block;text-align:center;margin-top:10px;color:#2563eb;font-weight:600;text-decoration:none}
+  h2{margin:0 0 10px;font-size:1.1rem}
+  ol,ul{margin:0;padding-left:20px;line-height:1.7}
+  table{width:100%;border-collapse:collapse;font-size:.95rem}
+  th,td{text-align:left;padding:6px 4px;border-bottom:1px solid #e5e7eb}
+  th{color:#6b7280;font-weight:600}
+  #status{margin-top:10px;text-align:center;color:#15803d;font-weight:600;min-height:1.2em}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <h1>🍎 Tangkap Apel</h1>
+  <p class="sub">Game Scratch sederhana. Unduh filenya lalu buka di Scratch.</p>
 
-<h1>Tangkap Bintang</h1>
-<div class="hud">
-  <span>Skor<b id="skor">0</b></span>
-  <span>Nyawa<b id="nyawa">3</b></span>
-  <span>Rekor<b id="rekor">0</b></span>
-</div>
+  <div class="card">
+    <div class="file">
+      <div class="icon">🐱</div>
+      <div>
+        <div class="fname">TangkapApel.sb3</div>
+        <div class="meta">Project Scratch 3 &middot; 4.9 KB</div>
+      </div>
+    </div>
+    <button class="dl" id="btn">⬇️ Unduh TangkapApel.sb3</button>
+    <div id="status"></div>
+    <a class="open" href="https://scratch.mit.edu/create" target="_blank" rel="noopener">Buka editor Scratch ↗</a>
+  </div>
 
-<div class="stage">
-  <canvas id="c" width="400" height="600"></canvas>
-  <div class="overlay" id="ov">
-    <h2 id="ovJudul">Tangkap Bintang</h2>
-    <p id="ovTeks">Gerakkan keranjang untuk menangkap bintang. Hindari batu agar nyawamu tidak berkurang.</p>
-    <button id="mulai" type="button">Mulai main</button>
+  <div class="card">
+    <h2>Cara membuka</h2>
+    <ol>
+      <li>Klik tombol unduh di atas.</li>
+      <li>Buka scratch.mit.edu/create.</li>
+      <li>Pilih <b>File → Load from your computer</b>, lalu pilih file <code>TangkapApel.sb3</code>.</li>
+      <li>Klik bendera hijau untuk mulai.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Cara main</h2>
+    <ul>
+      <li>Gerak: panah kiri/kanan atau tombol <b>A</b>/<b>D</b>.</li>
+      <li>Tangkap apel untuk menambah skor.</li>
+      <li>Apel yang lolos mengurangi nyawa (3 hati).</li>
+      <li>Makin lama, apel dan keranjang makin cepat.</li>
+      <li>Nyawa habis: muncul "Game Over" dan skor akhir.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Isi file</h2>
+    <table>
+      <tr><th>Objek</th><th>Jenis</th><th>Jumlah blok</th></tr>
+      <tr><td>Stage</td><td>Latar</td><td>0</td></tr>
+<tr><td>Keranjang</td><td>Sprite</td><td>28</td></tr>
+<tr><td>Apel</td><td>Sprite</td><td>37</td></tr>
+<tr><td>Hati1</td><td>Sprite</td><td>17</td></tr>
+<tr><td>Hati2</td><td>Sprite</td><td>17</td></tr>
+<tr><td>Hati3</td><td>Sprite</td><td>17</td></tr>
+
+    </table>
   </div>
 </div>
-<p class="tip">Kontrol: tombol panah kiri dan kanan (atau A dan D), atau geser jari dan mouse. Tekan Spasi untuk jeda.</p>
 
 <script>
-  var cv=document.getElementById('c'), ctx=cv.getContext('2d'), W=400, H=600;
-  var elSkor=document.getElementById('skor'), elNyawa=document.getElementById('nyawa'), elRekor=document.getElementById('rekor');
-  var ov=document.getElementById('ov'), ovJudul=document.getElementById('ovJudul'), ovTeks=document.getElementById('ovTeks'), btn=document.getElementById('mulai');
-  var rekor=0; try{ rekor=parseInt(localStorage.getItem('rekorBintang'),10)||0; }catch(e){}
-  elRekor.textContent=rekor;
+const B64 = "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";
+const FILENAME = "TangkapApel.sb3";
 
-  var C={};
-  function warna(){ var s=getComputedStyle(document.documentElement);
-    ['--blue','--sun','--rock','--ink'].forEach(function(k){ C[k]=s.getPropertyValue(k).trim(); }); }
-  warna(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change',warna);
+function toBlob() {
+  const bin = atob(B64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: "application/x.scratch.sb3" });
+}
 
-  var jalan=false, jeda=false, skor=0, nyawa=3, benda=[], waktuMuncul=0, kecepatan=150, terakhir=0, getar=0;
-  var p={ x:W/2, w:84, h:18, y:H-48 }, tujuan=W/2, tombol={ kiri:false, kanan:false };
-
-  function mulai(){
-    skor=0; nyawa=3; benda=[]; waktuMuncul=0; kecepatan=150; p.x=W/2; tujuan=W/2; jalan=true; jeda=false;
-    ov.classList.add('hide'); tampil(); terakhir=performance.now(); requestAnimationFrame(loop);
-  }
-  function tampil(){ elSkor.textContent=skor; elNyawa.textContent=nyawa; }
-  function selesai(){
-    jalan=false;
-    if(skor>rekor){ rekor=skor; elRekor.textContent=rekor; try{ localStorage.setItem('rekorBintang',rekor); }catch(e){} }
-    ovJudul.textContent='Permainan selesai';
-    ovTeks.textContent='Skormu '+skor+(skor>=rekor&&skor>0?' dan itu rekor baru!':'. Rekor tertinggi: '+rekor+'.');
-    btn.textContent='Main lagi'; ov.classList.remove('hide');
-  }
-
-  function muncul(){
-    var bintang=Math.random()>0.32, r=bintang?15:17;
-    benda.push({ x:r+Math.random()*(W-2*r), y:-r, r:r, bintang:bintang, putar:Math.random()*6, v:kecepatan*(0.85+Math.random()*0.4) });
-  }
-
-  function update(dt){
-    var gerak=(tombol.kanan?1:0)-(tombol.kiri?1:0);
-    if(gerak) tujuan=Math.max(p.w/2,Math.min(W-p.w/2,tujuan+gerak*430*dt));
-    p.x+=(tujuan-p.x)*Math.min(1,dt*16);
-    waktuMuncul-=dt;
-    if(waktuMuncul<=0){ muncul(); waktuMuncul=Math.max(0.35,0.95-skor*0.012); }
-    kecepatan=150+skor*3.2;
-    for(var i=benda.length-1;i>=0;i--){
-      var b=benda[i]; b.y+=b.v*dt; b.putar+=dt*2;
-      var kena=b.y+b.r>p.y && b.y-b.r<p.y+p.h && Math.abs(b.x-p.x)<p.w/2+b.r*0.6;
-      if(kena){
-        if(b.bintang){ skor++; } else { nyawa--; getar=0.25; }
-        benda.splice(i,1); tampil();
-        if(nyawa<=0){ selesai(); return; }
-      } else if(b.y-b.r>H){
-        benda.splice(i,1);
-      }
-    }
-    if(getar>0) getar-=dt;
-  }
-
-  function bintangPath(x,y,r,rot){
-    ctx.beginPath();
-    for(var i=0;i<10;i++){ var a=rot+i*Math.PI/5-Math.PI/2, rr=i%2?r*0.45:r; ctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr); }
-    ctx.closePath();
-  }
-  function gambar(){
-    ctx.clearRect(0,0,W,H);
-    ctx.save();
-    if(getar>0) ctx.translate((Math.random()-0.5)*8,0);
-    benda.forEach(function(b){
-      if(b.bintang){ ctx.fillStyle=C['--sun']; bintangPath(b.x,b.y,b.r,Math.sin(b.putar)*0.3); ctx.fill(); }
-      else{
-        ctx.fillStyle=C['--rock']; ctx.beginPath();
-        for(var i=0;i<7;i++){ var a=b.putar+i*Math.PI*2/7, rr=b.r*(i%2?0.82:1); ctx.lineTo(b.x+Math.cos(a)*rr,b.y+Math.sin(a)*rr); }
-        ctx.closePath(); ctx.fill();
-      }
-    });
-    ctx.fillStyle=C['--blue'];
-    ctx.beginPath(); ctx.roundRect(p.x-p.w/2,p.y,p.w,p.h,[4,4,12,12]); ctx.fill();
-    ctx.fillRect(p.x-p.w/2-3,p.y-5,p.w+6,6);
-    ctx.restore();
-  }
-
-  function loop(t){
-    if(!jalan) return;
-    var dt=Math.min(0.04,(t-terakhir)/1000); terakhir=t;
-    if(!jeda){ update(dt); }
-    if(jalan){ gambar(); requestAnimationFrame(loop); }
-  }
-
-  function atur(j){
-    if(!jalan) return;
-    jeda=j;
-    if(j){ ovJudul.textContent='Dijeda'; ovTeks.textContent='Tekan Spasi atau tombol di bawah untuk melanjutkan.'; btn.textContent='Lanjutkan'; ov.classList.remove('hide'); }
-    else{ ov.classList.add('hide'); terakhir=performance.now(); }
-  }
-  btn.addEventListener('click',function(){ if(jalan&&jeda) atur(false); else mulai(); });
-
-  addEventListener('keydown',function(e){
-    var k=e.key.toLowerCase();
-    if(k==='arrowleft'||k==='a') tombol.kiri=true;
-    if(k==='arrowright'||k==='d') tombol.kanan=true;
-    if(e.code==='Space'&&e.target!==btn){ e.preventDefault(); atur(!jeda); }
-  });
-  addEventListener('keyup',function(e){
-    var k=e.key.toLowerCase();
-    if(k==='arrowleft'||k==='a') tombol.kiri=false;
-    if(k==='arrowright'||k==='d') tombol.kanan=false;
-  });
-  function geser(e){
-    var r=cv.getBoundingClientRect(); tujuan=Math.max(p.w/2,Math.min(W-p.w/2,(e.clientX-r.left)/r.width*W));
-  }
-  cv.addEventListener('pointermove',geser);
-  cv.addEventListener('pointerdown',geser);
-  document.addEventListener('visibilitychange',function(){ if(document.hidden&&jalan&&!jeda) atur(true); });
-
-  gambar();
+document.getElementById("btn").addEventListener("click", function () {
+  const url = URL.createObjectURL(toBlob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = FILENAME;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  document.getElementById("status").textContent = "Unduhan dimulai ✔";
+});
 </script>
 </body>
 </html>
